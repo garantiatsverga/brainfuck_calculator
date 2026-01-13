@@ -1,2 +1,3 @@
 *.bf linguist-language=Brainfuck
 *.b linguist-language=Brainfuck
+interpreter.py linguist-vendored

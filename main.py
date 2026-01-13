@@ -68,7 +68,7 @@ def run_interactive_mode(orchestrator, force_8bit=False):
     else:
         print("Mode: Big numbers (no limits)")
     
-    print("Supported operations: +, -, *, /, ^")
+    print("Supported operations: +, -, *, /, ^, !")
     print("Enter 'help' for help, 'quit' to exit")
     while True:
         try:
@@ -118,7 +118,8 @@ def print_help():
     print("  6*7      - Multiplication")
     print("  15/3     - Division")
     print("  2^10     - Power")
-    print()
+    print("  5!        - Factorial")
+    print("-" * 30)
     print("Big number examples:")
     print("  999+999       = 1998")
     print("  1000*500      = 500000")

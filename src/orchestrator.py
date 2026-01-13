@@ -14,7 +14,8 @@ class Orchestrator:
             '-': self._load_module('subtraction.bf'),
             '*': self._load_module('multiplication.bf'),
             '/': self._load_module('division.bf'),
-            '^': self._load_module('power.bf')
+            '^': self._load_module('power.bf'),
+            '!': self._load_module('factorial.bf')
         }
     
     def _load_module(self, filename):
@@ -29,7 +30,6 @@ class Orchestrator:
     # Big number (past 255) functions
     @staticmethod
     def _split_to_cells(number):
-        """Split a number into base-256 cells"""
         if number == 0:
             return [0]
         
@@ -37,25 +37,23 @@ class Orchestrator:
         cells = []
         
         while n > 0:
-            cells.append(n & 0xFF)  # n % 256
-            n >>= 8                  # n // 256
+            cells.append(n & 0xFF)
+            n >>= 8
         
         return cells
     
     @staticmethod
     def _cells_to_number(cells):
-        """Convert cells back to a number"""
         if not cells:
             return 0
         
         result = 0
         for i, digit in enumerate(cells):
-            result += digit << (8 * i)  # digit * (256 ** i)
+            result += digit << (8 * i)
         
         return result
     
     def _add_big_numbers(self, a_cells, b_cells):
-        """Add big numbers"""
         result = []
         carry = 0
         max_len = max(len(a_cells), len(b_cells))
@@ -77,20 +75,16 @@ class Orchestrator:
         if carry:
             result.append(1)
         
-        # Remove leading zeros
         while len(result) > 1 and result[-1] == 0:
             result.pop()
         
         return result
     
     def _subtract_big_numbers(self, a_cells, b_cells):
-        """Subtract big numbers"""
-        # Check if result will be negative
         a_int = self._cells_to_number(a_cells)
         b_int = self._cells_to_number(b_cells)
         
         if a_int < b_int:
-            # Brainfuck doesn't support negative numbers =(
             return [0]
         
         result = []
@@ -111,15 +105,12 @@ class Orchestrator:
             
             result.append(diff)
         
-        # Remove leading zeros
         while len(result) > 1 and result[-1] == 0:
             result.pop()
         
         return result
     
     def _multiply_big_numbers(self, a_cells, b_cells):
-        """Multiply big numbers"""
-        # Quick checks
         if not a_cells or not b_cells or a_cells == [0] or b_cells == [0]:
             return [0]
         
@@ -129,16 +120,13 @@ class Orchestrator:
         if b_cells == [1]:
             return a_cells.copy()
         
-        # For medium-sized numbers use direct conversion
         a_int = self._cells_to_number(a_cells)
         b_int = self._cells_to_number(b_cells)
         
-        # If numbers aren't too big, calculate directly
         if a_int.bit_length() + b_int.bit_length() <= 64:
             result_int = a_int * b_int
             return self._split_to_cells(result_int)
         
-        # For big numbers use multiplication algorithm
         result_size = len(a_cells) + len(b_cells)
         result = [0] * result_size
         
@@ -152,32 +140,26 @@ class Orchestrator:
                 result[i + j] = product & 0xFF
                 carry = product >> 8
             
-            # Carry the remainder
             if carry:
                 result[i + len(b_cells)] += carry
         
-        # Handle carries
         for i in range(result_size - 1):
             if result[i] >= 256:
                 result[i + 1] += result[i] >> 8
                 result[i] &= 0xFF
         
-        # Remove leading zeros
         while len(result) > 1 and result[-1] == 0:
             result.pop()
         
         return result
     
     def _divide_big_numbers(self, a_cells, b_cells):
-        """Divide big numbers"""
-        # Check division by zero
         if not b_cells or b_cells == [0]:
             raise ZeroDivisionError("Division by zero")
         
         if b_cells == [1]:
             return a_cells.copy()
         
-        # Convert to integers
         a_int = self._cells_to_number(a_cells)
         b_int = self._cells_to_number(b_cells)
         
@@ -188,49 +170,60 @@ class Orchestrator:
         return self._split_to_cells(quotient_int)
     
     def _power_big_numbers(self, a_cells, b_cells):
-        """Power of big numbers"""
-        # Quick checks
         if not b_cells or b_cells == [0]:
-            return [1]  # a^0 = 1
+            return [1]
         
         if b_cells == [1]:
-            return a_cells.copy()  # a^1 = a
+            return a_cells.copy()
         
         if not a_cells or a_cells == [0]:
-            return [0]  # 0^b = 0
+            return [0]
         
         if a_cells == [1]:
-            return [1]  # 1^b = 1
+            return [1]
         
-        # Convert to integers
         a_int = self._cells_to_number(a_cells)
         b_int = self._cells_to_number(b_cells)
         
-        # Check for too large exponent
         if b_int > 1000:
             raise ValueError(f"Exponent is too large: {b_int}")
         
-        # Estimate result size
         estimated_bits = b_int * a_int.bit_length()
         if estimated_bits > 1000000:
             raise ValueError(f"Result will be too large")
         
-        # Calculate power
         try:
             result_int = pow(a_int, b_int)
         except (OverflowError, MemoryError):
             raise ValueError(f"Overflow when calculating {a_int}^{b_int}")
         
-        # Convert back to cells
+        return self._split_to_cells(result_int)
+
+    def _factorial_big_number(self, n_cells):
+        n_int = self._cells_to_number(n_cells)
+        
+        if n_int < 0:
+            raise ValueError("Factorial is not defined for negative numbers")
+        
+        if n_int == 0 or n_int == 1:
+            return [1]
+        
+        if n_int > 10000:
+            raise ValueError(f"Factorial of {n_int} would be too large")
+        
+        result_int = 1
+        for i in range(2, n_int + 1):
+            result_int *= i
+            
+            if result_int.bit_length() > 1000000:
+                raise ValueError(f"Factorial of {n_int} is too large")
+        
         return self._split_to_cells(result_int)
     
     def _execute_big_operation(self, op, a, b):
-        """Execute operation with big numbers"""
-        # Convert numbers to cells
         a_cells = self._split_to_cells(a)
         b_cells = self._split_to_cells(b)
         
-        # Execute operation
         if op == '+':
             result_cells = self._add_big_numbers(a_cells, b_cells)
         elif op == '-':
@@ -241,20 +234,19 @@ class Orchestrator:
             result_cells = self._divide_big_numbers(a_cells, b_cells)
         elif op == '^':
             result_cells = self._power_big_numbers(a_cells, b_cells)
+        elif op == '!':
+            if b != 0:
+                raise ValueError("Factorial operation should have only one operand (n!)")
+            result_cells = self._factorial_big_number(a_cells)
         else:
             raise ValueError(f"Unsupported operation: '{op}'")
         
-        # Convert back to number
         return self._cells_to_number(result_cells)
     
-    # Public interface
-    
     def _prepare_input(self, a, b):
-        """Prepare input data for Brainfuck"""
         return bytes([a % 256, b % 256])
     
     def execute_operation(self, operation, a, b):
-        """Execute operation via Brainfuck (8-bit mode)"""
         if operation not in self.operations:
             raise ValueError(f"Unsupported operation: '{operation}'")
         
@@ -271,8 +263,15 @@ class Orchestrator:
         return output[0] if output else 0
     
     def parse_expression(self, expression):
-        """Parse expression into operation and operands"""
         expression = expression.replace(' ', '')
+
+        if expression.endswith('!'):
+            try:
+                n = int(expression[:-1])
+                return '!', n, 0
+            except ValueError:
+                raise ValueError(f"Cannot parse factorial expression: '{expression}'")
+        
         operations = ['^', '*', '/', '+', '-']
         
         for op in operations:
@@ -289,17 +288,14 @@ class Orchestrator:
         raise ValueError(f"Cannot parse expression: '{expression}'")
     
     def calculate(self, expression):
-        """Main calculation method - always uses big numbers"""
         op, a, b = self.parse_expression(expression)
         return self._execute_big_operation(op, a, b)
     
     def calculate_8bit(self, expression):
-        """Calculation in 8-bit mode (for compatibility only)"""
         op, a, b = self.parse_expression(expression)
         return self.execute_operation(op, a, b)
     
     def batch_calculate(self, expressions):
-        """Batch calculation of multiple expressions"""
         results = []
         for expr in expressions:
             try:

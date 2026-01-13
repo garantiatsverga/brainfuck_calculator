@@ -32,6 +32,7 @@ The Brainfuck Calculator is a Python application that combines the power of Brai
    - `multiplication.bf` - Multiplies two numbers
    - `division.bf` - Divides two numbers
    - `power.bf` - Calculates power (exponentiation)
+   - `factorial.bf` - Calculates factorial (unary operation)
 
 ## Features
 
@@ -55,6 +56,7 @@ The Brainfuck Calculator is a Python application that combines the power of Brai
 - **Multiplication (*)** - `6*7 = 42`
 - **Division (/)** - `15/3 = 5`
 - **Power (^)** - `2^10 = 1024`
+- **Factorial (!)** - `5! = 120`
 
 ### Big Number Implementation
 
@@ -86,6 +88,7 @@ brainfuck-calculator/
 │   ├── subtraction.bf
 │   ├── multiplication.bf
 │   ├── division.bf
+│   ├── factorial.bf
 │   └── power.bf
 └── main.py
 ```
@@ -115,7 +118,7 @@ python main.py -i --8bit
 
 ```
 Mode: Big numbers (no limits)
-Supported operations: +, -, *, /, ^
+Supported operations: +, -, *, /, ^, !
 Enter 'help' for help, 'quit' to exit
 
 > 999+999
@@ -226,7 +229,7 @@ The Brainfuck Calculator proves that limitations are just opportunities for crea
 ## License & Credits
 
 - **Author**: https://github.com/garantiatsverga
-- **Version**: 1.0.0
+- **Version**: 1.1.0
 - **License**: Free to use and modify
 - **Note**: Brainfuck is a Turing-complete programming language created by Urban Müller in 1993
 
@@ -239,5 +242,6 @@ The Brainfuck Calculator proves that limitations are just opportunities for crea
 | `*` | Big Number | `1000*500` | 500000 |
 | `^` | Big Number | `2^10` | 1024 |
 | `/` | Both | `15/3` | 5 |
+| `!` | Both | `5!` | 120 |
 
 *Note: 8-bit mode results are modulo 256*
